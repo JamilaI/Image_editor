@@ -2,11 +2,14 @@ import imageio.v2
 from rembg import remove
 from PIL import Image,ImageFilter, ImageDraw, ImageFont, ImageEnhance, ImageOps
 #ImageDraw= allows drawing shapes, texts in image , ImageEnhance= for  brightness, contrast, color balance, and sharpness, ImageOps= (grayscale) and 'RGB'
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 
 #Remove background and save it as new picture
 
-input_path = 'angelina.jpg'
-output_path = 'angelina2.png'
+input_path = 'pic1.jpg'
+output_path = 'pic2.png'
 
 inp = Image.open(input_path)
 output = remove(inp)
@@ -88,5 +91,34 @@ else:
 image.save(output_path)
 print(f"Text and filter added successfully! Saved as {output_path}")
 
+def ImagesPlot(img):
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    plt.axis('off')
+    plt.show()
 
+# Load the image
+image_path = "pic2.png"
+image = cv2.imread(image_path)
 
+# Convert to grayscale for face detection
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Load Haar Cascade
+face_detect = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+
+# Detect faces
+faces = face_detect.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+
+# Blur each detected face
+for (x, y, w, h) in faces:
+    # Extract the region of interest (face area)
+    roi = image[y:y+h, x:x+w]
+    # Apply Gaussian blur
+    blurred_face = cv2.GaussianBlur(roi, (51, 51), 30)
+    # Replace the original face with blurred one
+    image[y:y+h, x:x+w] = blurred_face
+
+# Save and show the final image
+cv2.imwrite("pic2_faces_blurred.png", image)
+ImagesPlot(image)
+print("✅ Faces blurred successfully! Saved as pic2_faces_blurred.png")
